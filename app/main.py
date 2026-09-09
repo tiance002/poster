@@ -114,8 +114,23 @@ def create_app(database_path: Path | None = None, gateway=None, analyzer=None) -
         return RedirectResponse("/", status_code=303)
 
     @app.post("/run", response_class=HTMLResponse)
-    def run_now(request: Request):
-        result = run_processor()
+    async def run_now(request: Request):
+        if await request.body():
+            form = await _read_urlencoded_form(request)
+            settings = _settings_from_form(form, runtime.get() or repository.get_settings())
+            if settings.provider_id not in PROVIDERS:
+                result = RunResult("blocked", message="暂不支持所选邮箱提供商。")
+            elif not settings.email_address or not settings.llm_base_url or not settings.llm_model:
+                result = RunResult("blocked", message="请填写邮箱地址、模型端点和模型名称。")
+            else:
+                repository.save_settings(settings)
+                runtime.save(settings)
+                scheduler.update(
+                    settings.polling_seconds if settings.consent_granted and settings.allow_from else 0
+                )
+                result = run_processor()
+        else:
+            result = run_processor()
         settings = runtime.get() or repository.get_settings()
         return templates.TemplateResponse(
             request,

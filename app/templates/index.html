@@ -13,14 +13,14 @@
           <p class="eyebrow">邮箱代理</p>
           <h1>电子邮件操作</h1>
         </div>
-        <form method="post" action="/run"><button class="primary" type="submit">现在查看</button></form>
+        <button class="primary" type="submit" form="settings-form" formaction="/run" formmethod="post">现在查看</button>
       </header>
 
       {% if notice %}<p class="notice">{{ notice }}</p>{% endif %}
 
       <section class="settings" aria-labelledby="settings-heading">
         <div class="section-heading"><h2 id="settings-heading">邮箱配置</h2><span>只读分析</span></div>
-        <form method="post" action="/settings" class="form-grid">
+        <form id="settings-form" method="post" action="/settings" class="form-grid">
           <label>提供者
             <select name="provider_id">{% for provider in providers %}<option value="{{ provider.id }}" {% if settings and settings.provider_id == provider.id %}selected{% endif %}>{{ provider.label }}</option>{% endfor %}</select>
           </label>

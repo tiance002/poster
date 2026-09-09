@@ -20,6 +20,7 @@ python -m uvicorn app.main:app --reload
 - Model endpoint / key / model：填写任意 OpenAI 兼容服务的地址、密钥和模型名。
 - Grant access：未勾选时不会建立 IMAP 连接。
 - Polling interval：选择手动或每分钟、5 分钟、15 分钟轮询。
+- 点击“现在查看”会先保存当前表单，再立即执行检查；点击“存档设置”只保存、不检查。
 
 授权码、模型 API Key 使用 Windows DPAPI 加密后保存在本机 SQLite。只有当前 Windows 用户、当前电脑能够解密；网页从不回显密钥。首次升级到 `v0.1.2` 后需要重新填写并保存一次，之后重启服务无需重复输入。
 

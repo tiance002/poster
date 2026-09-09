@@ -52,6 +52,24 @@ def test_settings_then_manual_run_shows_analysis(tmp_path) -> None:
     assert "Draft reply" in response.text
 
 
+def test_manual_run_saves_current_form_settings_before_processing(tmp_path) -> None:
+    app = create_app(tmp_path / "agent.sqlite3", gateway=FakeGateway(), analyzer=FakeAnalyzer())
+    client = TestClient(app)
+
+    response = client.post(
+        "/run",
+        data={
+            "provider_id": "qq", "email_address": "agent@qq.com", "imap_authorization_code": "code",
+            "consent_granted": "on", "allow_from": "trusted@example.com", "llm_base_url": "https://llm.example/v1",
+            "llm_api_key": "key", "llm_model": "model", "polling_seconds": "0",
+        },
+    )
+
+    assert response.status_code == 200
+    assert "Summary" in response.text
+    assert "已在本机加密保存" in response.text
+
+
 def test_manual_run_is_blocked_when_consent_is_disabled(tmp_path) -> None:
     app = create_app(tmp_path / "agent.sqlite3", gateway=FakeGateway(), analyzer=FakeAnalyzer())
     client = TestClient(app)
