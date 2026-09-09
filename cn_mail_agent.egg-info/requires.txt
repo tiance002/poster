@@ -1,0 +1,14 @@
+apscheduler<4,>=3.10
+fastapi<1,>=0.115
+imap-tools<2,>=1.10
+jinja2<4,>=3.1
+langchain-openai<1,>=0.3
+langgraph<1,>=0.2
+pydantic<3,>=2.8
+python-dotenv<2,>=1.0
+sqlalchemy<3,>=2.0
+uvicorn[standard]<1,>=0.30
+
+[dev]
+httpx<1,>=0.27
+pytest<10,>=8

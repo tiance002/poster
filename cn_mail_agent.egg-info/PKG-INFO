@@ -1,0 +1,18 @@
+Metadata-Version: 2.4
+Name: cn-mail-agent
+Version: 0.1.0
+Summary: A consent-first email analysis agent for QQ, NetEase, and 139 mailboxes.
+Requires-Python: >=3.11
+Requires-Dist: apscheduler<4,>=3.10
+Requires-Dist: fastapi<1,>=0.115
+Requires-Dist: imap-tools<2,>=1.10
+Requires-Dist: jinja2<4,>=3.1
+Requires-Dist: langchain-openai<1,>=0.3
+Requires-Dist: langgraph<1,>=0.2
+Requires-Dist: pydantic<3,>=2.8
+Requires-Dist: python-dotenv<2,>=1.0
+Requires-Dist: sqlalchemy<3,>=2.0
+Requires-Dist: uvicorn[standard]<1,>=0.30
+Provides-Extra: dev
+Requires-Dist: httpx<1,>=0.27; extra == "dev"
+Requires-Dist: pytest<10,>=8; extra == "dev"

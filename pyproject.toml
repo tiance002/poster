@@ -1,0 +1,23 @@
+[project]
+name = "cn-mail-agent"
+version = "0.1.0"
+description = "A consent-first email analysis agent for QQ, NetEase, and 139 mailboxes."
+requires-python = ">=3.11"
+dependencies = [
+  "apscheduler>=3.10,<4",
+  "fastapi>=0.115,<1",
+  "imap-tools>=1.10,<2",
+  "jinja2>=3.1,<4",
+  "langchain-openai>=0.3,<1",
+  "langgraph>=0.2,<1",
+  "pydantic>=2.8,<3",
+  "python-dotenv>=1.0,<2",
+  "sqlalchemy>=2.0,<3",
+  "uvicorn[standard]>=0.30,<1",
+]
+
+[project.optional-dependencies]
+dev = ["httpx>=0.27,<1", "pytest>=8,<10"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
