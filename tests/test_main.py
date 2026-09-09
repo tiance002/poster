@@ -18,7 +18,7 @@ class FakeGateway:
         return []
 
     def fetch_recent_inbox(self, _settings, limit):
-        assert limit == 100
+        assert limit is None
         return []
 
     def move_to_trash(self, _settings, _messages):
@@ -67,3 +67,22 @@ def test_manual_run_is_blocked_when_consent_is_disabled(tmp_path) -> None:
     response = client.post("/run")
 
     assert "邮箱访问授权未开启" in response.content.decode("utf-8")
+
+
+def test_settings_page_marks_saved_secrets_without_rendering_them(tmp_path) -> None:
+    app = create_app(tmp_path / "agent.sqlite3", gateway=FakeGateway(), analyzer=FakeAnalyzer())
+    client = TestClient(app)
+    client.post(
+        "/settings",
+        data={
+            "provider_id": "qq", "email_address": "agent@qq.com", "imap_authorization_code": "imap-code",
+            "consent_granted": "on", "allow_from": "trusted@example.com", "llm_base_url": "https://llm.example/v1",
+            "llm_api_key": "llm-key", "llm_model": "model", "polling_seconds": "0",
+        },
+    )
+
+    response = client.get("/").content.decode("utf-8")
+
+    assert "已在本机加密保存" in response
+    assert "imap-code" not in response
+    assert "llm-key" not in response

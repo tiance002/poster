@@ -25,10 +25,10 @@
             <select name="provider_id">{% for provider in providers %}<option value="{{ provider.id }}" {% if settings and settings.provider_id == provider.id %}selected{% endif %}>{{ provider.label }}</option>{% endfor %}</select>
           </label>
           <label>电子邮件地址<input name="email_address" type="email" required value="{{ settings.email_address if settings else '' }}"></label>
-          <label>IMAP 授权码<input name="imap_authorization_code" type="password" autocomplete="new-password" placeholder="服务重启后需要重新填写"></label>
+          <label>IMAP 授权码{% if has_saved_imap_secret %}<small>已在本机加密保存</small>{% endif %}<input name="imap_authorization_code" type="password" autocomplete="new-password" placeholder="留空则保留本机已加密保存的授权码"></label>
           <label>允许发送者<input name="allow_from" required value="{{ settings.allow_from|join(', ') if settings else '' }}" placeholder="填写实际来信发件人，如 one@example.com"></label>
           <label>模型端点<input name="llm_base_url" required value="{{ settings.llm_base_url if settings else 'https://api.openai.com/v1' }}"></label>
-          <label>模型 API 密钥<input name="llm_api_key" type="password" autocomplete="new-password" placeholder="服务重启后需要重新填写"></label>
+          <label>模型 API 密钥{% if has_saved_llm_secret %}<small>已在本机加密保存</small>{% endif %}<input name="llm_api_key" type="password" autocomplete="new-password" placeholder="留空则保留本机已加密保存的密钥"></label>
           <label>模型名称<input name="llm_model" required value="{{ settings.llm_model if settings else '' }}" placeholder="填写服务商提供的模型名称"></label>
           <label>轮询区间
             <select name="polling_seconds"><option value="0" {% if not settings or settings.polling_seconds == 0 %}selected{% endif %}>仅手动</option><option value="60" {% if settings and settings.polling_seconds == 60 %}selected{% endif %}>每一分钟</option><option value="300" {% if settings and settings.polling_seconds == 300 %}selected{% endif %}>每 5 分钟</option><option value="900" {% if settings and settings.polling_seconds == 900 %}selected{% endif %}>每 15 分钟</option></select>
@@ -39,7 +39,7 @@
       </section>
 
       <section class="results" aria-labelledby="results-heading">
-        <div class="section-heading"><h2 id="results-heading">最新一轮</h2>{% if result %}<span class="status {{ result.status }}">{% if result.status == 'completed' %}已完成{% else %}已阻止{% endif %}</span>{% endif %}</div>
+        <div class="section-heading"><h2 id="results-heading">最新一轮</h2>{% if result %}<span class="status {{ result.status }}">{% if result.status == 'completed' %}已完成{% elif result.status == 'failed' %}失败{% else %}已阻止{% endif %}</span>{% endif %}</div>
         {% if result %}
           <p class="run-summary">处理 {{ result.processed_count }} · 忽略 {{ result.ignored_count }} · 验证邮件移至垃圾箱 {{ result.moved_to_trash_count }}</p>
           {% if result.message %}<p class="notice">{{ result.message }}</p>{% endif %}

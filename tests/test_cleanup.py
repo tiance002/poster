@@ -34,3 +34,18 @@ def test_cleanup_ignores_regular_email() -> None:
     regular = regular.with_body("Your account preferences were updated.")
 
     assert select_stale_verification_codes([regular], now=datetime.now(timezone.utc)) == []
+
+
+def test_cleanup_recognizes_oracle_chinese_one_time_code() -> None:
+    old = EmailMessage(
+        uid="1", uid_validity="1", message_id="oracle-1", sender="no-reply@identity.oci.oraclecloud.com",
+        recipients=("agent@qq.com",), subject="您的 Oracle 一次性验证码", body="您好，您的 Oracle 账户一次性验证码是：1527。",
+        sent_at=datetime.now(timezone.utc) - timedelta(hours=2),
+    )
+    newest = EmailMessage(
+        uid="2", uid_validity="1", message_id="oracle-2", sender=old.sender,
+        recipients=old.recipients, subject=old.subject, body="您好，您的 Oracle 账户一次性验证码是：6185。",
+        sent_at=datetime.now(timezone.utc) - timedelta(minutes=10),
+    )
+
+    assert select_stale_verification_codes([old, newest], now=datetime.now(timezone.utc)) == [old]

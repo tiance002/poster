@@ -7,7 +7,10 @@ from datetime import datetime, timedelta
 from app.types import EmailMessage
 
 
-CODE_PATTERN = re.compile(r"\b(?:verification\s*code|验证码|校验码|动态码|otp)\b", re.IGNORECASE)
+CODE_PATTERN = re.compile(
+    r"(?:verification\s*code|验证码|校验码|动态码|一次性验证码|one[- ]?time\s*(?:password|code)|otp)",
+    re.IGNORECASE,
+)
 NUMBER_PATTERN = re.compile(r"\b\d{4,8}\b")
 
 

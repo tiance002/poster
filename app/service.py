@@ -10,7 +10,7 @@ from app.types import AnalysisResult, EmailMessage, MailboxSettings, ProcessedRe
 
 class MailGateway(Protocol):
     def fetch_unseen(self, settings: MailboxSettings) -> list[EmailMessage]: ...
-    def fetch_recent_inbox(self, settings: MailboxSettings, limit: int) -> list[EmailMessage]: ...
+    def fetch_recent_inbox(self, settings: MailboxSettings, limit: int | None) -> list[EmailMessage]: ...
     def fetch_history(self, settings: MailboxSettings, sender: str, limit: int) -> list[EmailMessage]: ...
     def move_to_trash(self, settings: MailboxSettings, messages: list[EmailMessage]) -> int: ...
 
@@ -35,7 +35,13 @@ class MailboxProcessor:
             return RunResult("blocked", message="邮箱访问授权未开启，系统没有连接邮箱。")
         if not settings.allow_from:
             return RunResult("blocked", message="请填写允许发送者；白名单为空时系统不会连接邮箱。")
-        messages = self.gateway.fetch_unseen(settings)
+        if not settings.imap_authorization_code:
+            return RunResult("blocked", message="缺少 IMAP 授权码。请填写并保存后再执行邮箱检查。")
+        try:
+            messages = self.gateway.fetch_unseen(settings)
+        except Exception as error:
+            detail = str(error).replace("\n", " ")[:240]
+            return RunResult("failed", message=f"邮箱连接失败：{detail}")
         allowed = {address.strip().lower() for address in settings.allow_from}
         processed: list[ProcessedResult] = []
         ignored = 0
@@ -50,7 +56,7 @@ class MailboxProcessor:
             analysis = self.analyzer.analyze(message, history, settings)
             self.repository.record_processed(settings.email_address, message.uid_validity, message.uid, message.message_id)
             processed.append(ProcessedResult(message, analysis))
-        recent_messages = self.gateway.fetch_recent_inbox(settings, limit=100)
+        recent_messages = self.gateway.fetch_recent_inbox(settings, limit=None)
         stale = select_stale_verification_codes(recent_messages, now=datetime.now(timezone.utc))
         moved = self.gateway.move_to_trash(settings, stale) if stale else 0
         if processed:

@@ -92,13 +92,15 @@ def create_app(database_path: Path | None = None, gateway=None, analyzer=None) -
                 "settings": settings,
                 "result": state["result"],
                 "notice": state["notice"],
+                "has_saved_imap_secret": bool(settings and settings.imap_authorization_code),
+                "has_saved_llm_secret": bool(settings and settings.llm_api_key),
             },
         )
 
     @app.post("/settings")
     async def save_settings(request: Request):
         form = await _read_urlencoded_form(request)
-        settings = _settings_from_form(form, runtime.get())
+        settings = _settings_from_form(form, runtime.get() or repository.get_settings())
         if settings.provider_id not in PROVIDERS:
             state["notice"] = "暂不支持所选邮箱提供商。"
             return RedirectResponse("/", status_code=303)
@@ -108,7 +110,7 @@ def create_app(database_path: Path | None = None, gateway=None, analyzer=None) -
         repository.save_settings(settings)
         runtime.save(settings)
         scheduler.update(settings.polling_seconds if settings.consent_granted and settings.allow_from else 0)
-        state["notice"] = "设置已保存。邮箱授权码和模型密钥只保存在当前运行进程中。"
+        state["notice"] = "设置已保存。邮箱授权码和模型密钥已在本机加密保存。"
         return RedirectResponse("/", status_code=303)
 
     @app.post("/run", response_class=HTMLResponse)
@@ -118,7 +120,11 @@ def create_app(database_path: Path | None = None, gateway=None, analyzer=None) -
         return templates.TemplateResponse(
             request,
             "index.html",
-            {"providers": PROVIDERS.values(), "settings": settings, "result": result, "notice": None},
+            {
+                "providers": PROVIDERS.values(), "settings": settings, "result": result, "notice": None,
+                "has_saved_imap_secret": bool(settings and settings.imap_authorization_code),
+                "has_saved_llm_secret": bool(settings and settings.llm_api_key),
+            },
         )
 
     return app

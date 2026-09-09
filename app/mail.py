@@ -29,7 +29,7 @@ class ImapMailGateway:
     def fetch_unseen(self, settings: MailboxSettings) -> list[EmailMessage]:
         return self._fetch_inbox(settings, "UNSEEN")
 
-    def fetch_recent_inbox(self, settings: MailboxSettings, limit: int) -> list[EmailMessage]:
+    def fetch_recent_inbox(self, settings: MailboxSettings, limit: int | None) -> list[EmailMessage]:
         return self._fetch_inbox(settings, "ALL", limit=limit)
 
     def _fetch_inbox(

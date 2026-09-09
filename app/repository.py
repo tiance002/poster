@@ -5,6 +5,7 @@ import sqlite3
 from pathlib import Path
 
 from app.types import MailboxSettings
+from app.secrets import protect_secret, reveal_secret
 
 
 class SettingsRepository:
@@ -40,13 +41,22 @@ class SettingsRepository:
                 );
                 """
             )
+            columns = {row[1] for row in connection.execute("PRAGMA table_info(settings)")}
+            if "imap_authorization_code" not in columns:
+                connection.execute(
+                    "ALTER TABLE settings ADD COLUMN imap_authorization_code TEXT NOT NULL DEFAULT ''"
+                )
+            if "llm_api_key" not in columns:
+                connection.execute("ALTER TABLE settings ADD COLUMN llm_api_key TEXT NOT NULL DEFAULT ''")
 
     def save_settings(self, settings: MailboxSettings) -> None:
-        public = settings.without_secrets()
         with self._connection() as connection:
             connection.execute(
                 """
-                INSERT INTO settings VALUES (1, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO settings (
+                    id, provider_id, email_address, consent_granted, allow_from_json,
+                    llm_base_url, llm_model, polling_seconds, imap_authorization_code, llm_api_key
+                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     provider_id=excluded.provider_id,
                     email_address=excluded.email_address,
@@ -54,16 +64,20 @@ class SettingsRepository:
                     allow_from_json=excluded.allow_from_json,
                     llm_base_url=excluded.llm_base_url,
                     llm_model=excluded.llm_model,
-                    polling_seconds=excluded.polling_seconds
+                    polling_seconds=excluded.polling_seconds,
+                    imap_authorization_code=excluded.imap_authorization_code,
+                    llm_api_key=excluded.llm_api_key
                 """,
                 (
-                    public.provider_id,
-                    public.email_address,
-                    int(public.consent_granted),
-                    json.dumps(public.allow_from),
-                    public.llm_base_url,
-                    public.llm_model,
-                    public.polling_seconds,
+                    settings.provider_id,
+                    settings.email_address,
+                    int(settings.consent_granted),
+                    json.dumps(settings.allow_from),
+                    settings.llm_base_url,
+                    settings.llm_model,
+                    settings.polling_seconds,
+                    protect_secret(settings.imap_authorization_code),
+                    protect_secret(settings.llm_api_key),
                 ),
             )
 
@@ -75,11 +89,11 @@ class SettingsRepository:
         return MailboxSettings(
             provider_id=row[1],
             email_address=row[2],
-            imap_authorization_code="",
+            imap_authorization_code=reveal_secret(row[8]),
             consent_granted=bool(row[3]),
             allow_from=tuple(json.loads(row[4])),
             llm_base_url=row[5],
-            llm_api_key="",
+            llm_api_key=reveal_secret(row[9]),
             llm_model=row[6],
             polling_seconds=row[7],
         )

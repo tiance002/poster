@@ -9,7 +9,7 @@ h1, h2, p { margin: 0; } h1 { font-size: 30px; font-weight: 650; } h2 { font-siz
 section { margin-top: 26px; border-top: 3px solid #335b42; background: #fff; padding: 22px; }
 .section-heading span, .status { color: #426b52; font-size: 13px; font-weight: 650; }
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px; margin-top: 22px; }
-label { color: #385043; display: grid; font-size: 13px; font-weight: 650; gap: 7px; }
+label { color: #385043; display: grid; font-size: 13px; font-weight: 650; gap: 7px; } label small { color: #357149; font-size: 12px; font-weight: 650; }
 input, select, button { border: 1px solid #b7c6bc; border-radius: 4px; color: #15211c; font: inherit; min-height: 40px; padding: 8px 10px; }
 input:focus, select:focus { border-color: #245b39; outline: 2px solid #c4dbc8; outline-offset: 1px; }
 button { background: #e8eee9; cursor: pointer; font-weight: 700; } button:hover { background: #d8e6da; }
