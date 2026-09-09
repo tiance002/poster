@@ -1,6 +1,6 @@
 [project]
 name = "cn-mail-agent"
-version = "0.1.0"
+version = "0.1.1"
 description = "A consent-first email analysis agent for QQ, NetEase, and 139 mailboxes."
 requires-python = ">=3.11"
 dependencies = [

@@ -50,7 +50,7 @@ def _settings_from_form(form, previous: MailboxSettings | None) -> MailboxSettin
 async def _read_urlencoded_form(request: Request) -> dict[str, str]:
     content_type = request.headers.get("content-type", "")
     if not content_type.startswith("application/x-www-form-urlencoded"):
-        raise ValueError("Settings must be submitted as a standard web form.")
+        raise ValueError("配置必须通过标准网页表单提交。")
     fields = parse_qs((await request.body()).decode("utf-8"), keep_blank_values=True)
     return {name: values[-1] for name, values in fields.items()}
 
@@ -77,7 +77,7 @@ def create_app(database_path: Path | None = None, gateway=None, analyzer=None) -
         finally:
             scheduler.shutdown()
 
-    app = FastAPI(title="Mailbox Agent", docs_url=None, redoc_url=None, lifespan=lifespan)
+    app = FastAPI(title="邮箱代理", docs_url=None, redoc_url=None, lifespan=lifespan)
     app.mount("/static", StaticFiles(directory=PROJECT_ROOT / "app" / "static"), name="static")
     templates = Jinja2Templates(directory=PROJECT_ROOT / "app" / "templates")
 
@@ -100,15 +100,15 @@ def create_app(database_path: Path | None = None, gateway=None, analyzer=None) -
         form = await _read_urlencoded_form(request)
         settings = _settings_from_form(form, runtime.get())
         if settings.provider_id not in PROVIDERS:
-            state["notice"] = "Unsupported mailbox provider."
+            state["notice"] = "暂不支持所选邮箱提供商。"
             return RedirectResponse("/", status_code=303)
         if not settings.email_address or not settings.llm_base_url or not settings.llm_model:
-            state["notice"] = "Mailbox address, model endpoint, and model name are required."
+            state["notice"] = "请填写邮箱地址、模型端点和模型名称。"
             return RedirectResponse("/", status_code=303)
         repository.save_settings(settings)
         runtime.save(settings)
         scheduler.update(settings.polling_seconds if settings.consent_granted and settings.allow_from else 0)
-        state["notice"] = "Settings saved. Secrets remain only in this running process."
+        state["notice"] = "设置已保存。邮箱授权码和模型密钥只保存在当前运行进程中。"
         return RedirectResponse("/", status_code=303)
 
     @app.post("/run", response_class=HTMLResponse)

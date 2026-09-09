@@ -1,55 +1,55 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Mailbox Agent</title>
+    <title>邮箱代理</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
   </head>
   <body>
     <main>
       <header>
         <div>
-          <p class="eyebrow">MAILBOX AGENT</p>
-          <h1>Email operations</h1>
+          <p class="eyebrow">邮箱代理</p>
+          <h1>电子邮件操作</h1>
         </div>
-        <form method="post" action="/run"><button class="primary" type="submit">Check now</button></form>
+        <form method="post" action="/run"><button class="primary" type="submit">现在查看</button></form>
       </header>
 
       {% if notice %}<p class="notice">{{ notice }}</p>{% endif %}
 
       <section class="settings" aria-labelledby="settings-heading">
-        <div class="section-heading"><h2 id="settings-heading">Mailbox configuration</h2><span>Read-only analysis</span></div>
+        <div class="section-heading"><h2 id="settings-heading">邮箱配置</h2><span>只读分析</span></div>
         <form method="post" action="/settings" class="form-grid">
-          <label>Provider
+          <label>提供者
             <select name="provider_id">{% for provider in providers %}<option value="{{ provider.id }}" {% if settings and settings.provider_id == provider.id %}selected{% endif %}>{{ provider.label }}</option>{% endfor %}</select>
           </label>
-          <label>Email address<input name="email_address" type="email" required value="{{ settings.email_address if settings else '' }}"></label>
-          <label>IMAP authorization code<input name="imap_authorization_code" type="password" autocomplete="new-password" placeholder="Required after restart"></label>
-          <label>Allowed senders<input name="allow_from" required value="{{ settings.allow_from|join(', ') if settings else '' }}" placeholder="one@example.com, two@example.com"></label>
-          <label>Model endpoint<input name="llm_base_url" required value="{{ settings.llm_base_url if settings else 'https://api.openai.com/v1' }}"></label>
-          <label>Model API key<input name="llm_api_key" type="password" autocomplete="new-password" placeholder="Required after restart"></label>
-          <label>Model name<input name="llm_model" required value="{{ settings.llm_model if settings else '' }}" placeholder="your-model-name"></label>
-          <label>Polling interval
-            <select name="polling_seconds"><option value="0" {% if not settings or settings.polling_seconds == 0 %}selected{% endif %}>Manual only</option><option value="60" {% if settings and settings.polling_seconds == 60 %}selected{% endif %}>Every minute</option><option value="300" {% if settings and settings.polling_seconds == 300 %}selected{% endif %}>Every 5 minutes</option><option value="900" {% if settings and settings.polling_seconds == 900 %}selected{% endif %}>Every 15 minutes</option></select>
+          <label>电子邮件地址<input name="email_address" type="email" required value="{{ settings.email_address if settings else '' }}"></label>
+          <label>IMAP 授权码<input name="imap_authorization_code" type="password" autocomplete="new-password" placeholder="服务重启后需要重新填写"></label>
+          <label>允许发送者<input name="allow_from" required value="{{ settings.allow_from|join(', ') if settings else '' }}" placeholder="填写实际来信发件人，如 one@example.com"></label>
+          <label>模型端点<input name="llm_base_url" required value="{{ settings.llm_base_url if settings else 'https://api.openai.com/v1' }}"></label>
+          <label>模型 API 密钥<input name="llm_api_key" type="password" autocomplete="new-password" placeholder="服务重启后需要重新填写"></label>
+          <label>模型名称<input name="llm_model" required value="{{ settings.llm_model if settings else '' }}" placeholder="填写服务商提供的模型名称"></label>
+          <label>轮询区间
+            <select name="polling_seconds"><option value="0" {% if not settings or settings.polling_seconds == 0 %}selected{% endif %}>仅手动</option><option value="60" {% if settings and settings.polling_seconds == 60 %}selected{% endif %}>每一分钟</option><option value="300" {% if settings and settings.polling_seconds == 300 %}selected{% endif %}>每 5 分钟</option><option value="900" {% if settings and settings.polling_seconds == 900 %}selected{% endif %}>每 15 分钟</option></select>
           </label>
-          <label class="consent"><input name="consent_granted" type="checkbox" {% if settings and settings.consent_granted %}checked{% endif %}> <span>I grant access to this mailbox</span></label>
-          <div class="form-actions"><button type="submit">Save settings</button></div>
+          <label class="consent"><input name="consent_granted" type="checkbox" {% if settings and settings.consent_granted %}checked{% endif %}> <span>我授权访问这个邮箱</span></label>
+          <div class="form-actions"><button type="submit">存档设置</button></div>
         </form>
       </section>
 
       <section class="results" aria-labelledby="results-heading">
-        <div class="section-heading"><h2 id="results-heading">Latest run</h2>{% if result %}<span class="status {{ result.status }}">{{ result.status }}</span>{% endif %}</div>
+        <div class="section-heading"><h2 id="results-heading">最新一轮</h2>{% if result %}<span class="status {{ result.status }}">{% if result.status == 'completed' %}已完成{% else %}已阻止{% endif %}</span>{% endif %}</div>
         {% if result %}
-          <p class="run-summary">Processed {{ result.processed_count }} · Ignored {{ result.ignored_count }} · Verification emails moved to Trash {{ result.moved_to_trash_count }}</p>
+          <p class="run-summary">处理 {{ result.processed_count }} · 忽略 {{ result.ignored_count }} · 验证邮件移至垃圾箱 {{ result.moved_to_trash_count }}</p>
           {% if result.message %}<p class="notice">{{ result.message }}</p>{% endif %}
           {% for item in result.items %}
             <article>
-              <div class="mail-meta"><strong>{{ item.message.subject or '(No subject)' }}</strong><span>{{ item.message.sender }}</span></div>
-              <dl><div><dt>Summary</dt><dd>{{ item.analysis.summary }}</dd></div><div><dt>Category</dt><dd>{{ item.analysis.category }}</dd></div><div><dt>Risk note</dt><dd>{{ item.analysis.risk_note }}</dd></div><div><dt>Reply draft</dt><dd>{{ item.analysis.reply_draft }}</dd></div></dl>
+              <div class="mail-meta"><strong>{{ item.message.subject or '（无主题）' }}</strong><span>{{ item.message.sender }}</span></div>
+              <dl><div><dt>摘要</dt><dd>{{ item.analysis.summary }}</dd></div><div><dt>分类</dt><dd>{{ item.analysis.category }}</dd></div><div><dt>风险提示</dt><dd>{{ item.analysis.risk_note }}</dd></div><div><dt>回复草稿</dt><dd>{{ item.analysis.reply_draft }}</dd></div></dl>
             </article>
           {% endfor %}
-        {% else %}<p class="empty">No mailbox run has been recorded in this session.</p>{% endif %}
+        {% else %}<p class="empty">本次服务启动后尚未执行邮箱检查。</p>{% endif %}
       </section>
     </main>
   </body>

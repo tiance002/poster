@@ -70,3 +70,18 @@ def test_processor_cleans_stale_seen_verification_codes_from_recent_inbox(tmp_pa
 
     assert result.moved_to_trash_count == 1
     assert gateway.moved == [stale]
+
+
+def test_processor_explains_when_no_unread_message_is_eligible(tmp_path) -> None:
+    repository = SettingsRepository(tmp_path / "agent.sqlite3")
+    settings = MailboxSettings.minimal(consent_granted=True, allow_from=("trusted@example.com",))
+    repository.save_settings(settings)
+    untrusted = EmailMessage(
+        "9", "1", "untrusted", "newsletter@example.com", ("agent@qq.com",),
+        "News", "A message", datetime.now(timezone.utc),
+    )
+
+    result = MailboxProcessor(repository, FakeGateway([untrusted]), FakeAnalyzer()).run(settings)
+
+    assert result.processed_count == 0
+    assert "发件人不在白名单或邮件已处理" in result.message

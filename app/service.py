@@ -30,11 +30,11 @@ class MailboxProcessor:
     def run(self, runtime_settings: MailboxSettings | None = None) -> RunResult:
         settings = runtime_settings or self.repository.get_settings()
         if settings is None:
-            return RunResult("blocked", message="Configure the mailbox before processing.")
+            return RunResult("blocked", message="请先保存邮箱配置，再执行检查。")
         if not settings.consent_granted:
-            return RunResult("blocked", message="Mailbox consent is disabled; no connection was made.")
+            return RunResult("blocked", message="邮箱访问授权未开启，系统没有连接邮箱。")
         if not settings.allow_from:
-            return RunResult("blocked", message="No allowed senders configured; no connection was made.")
+            return RunResult("blocked", message="请填写允许发送者；白名单为空时系统不会连接邮箱。")
         messages = self.gateway.fetch_unseen(settings)
         allowed = {address.strip().lower() for address in settings.allow_from}
         processed: list[ProcessedResult] = []
@@ -53,4 +53,10 @@ class MailboxProcessor:
         recent_messages = self.gateway.fetch_recent_inbox(settings, limit=100)
         stale = select_stale_verification_codes(recent_messages, now=datetime.now(timezone.utc))
         moved = self.gateway.move_to_trash(settings, stale) if stale else 0
-        return RunResult("completed", len(processed), ignored, moved, items=tuple(processed))
+        if processed:
+            message = ""
+        elif ignored:
+            message = f"没有符合条件的未读邮件；已跳过 {ignored} 封，原因是发件人不在白名单或邮件已处理。"
+        else:
+            message = "收件箱中没有未读邮件。"
+        return RunResult("completed", len(processed), ignored, moved, message, tuple(processed))

@@ -66,4 +66,4 @@ def test_manual_run_is_blocked_when_consent_is_disabled(tmp_path) -> None:
 
     response = client.post("/run")
 
-    assert "consent is disabled" in response.text
+    assert "邮箱访问授权未开启" in response.content.decode("utf-8")
