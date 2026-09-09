@@ -7,7 +7,13 @@ from app.types import AnalysisResult, EmailMessage, MailboxSettings
 
 
 def parse_analysis(value: str | dict[str, Any]) -> AnalysisResult:
-    payload = json.loads(value) if isinstance(value, str) else value
+    if isinstance(value, str):
+        cleaned = value.strip()
+        if cleaned.startswith("```"):
+            cleaned = cleaned.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+        payload = json.loads(cleaned)
+    else:
+        payload = value
     required = ("summary", "category", "risk_note", "reply_draft")
     if not all(isinstance(payload.get(field), str) and payload[field].strip() for field in required):
         raise ValueError("Model output must contain non-empty analysis fields")
@@ -43,7 +49,10 @@ class LangGraphAnalyzer:
 
         def invoke(state: dict[str, Any]) -> dict[str, Any]:
             response = model.invoke(state["prompt"])
-            return {"raw": response.content}
+            content = response.content
+            if not isinstance(content, str):
+                content = json.dumps(content, ensure_ascii=False)
+            return {"raw": content}
 
         graph = StateGraph(dict)
         graph.add_node("analyze", invoke)

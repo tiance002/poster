@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mailbox Agent</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <p class="eyebrow">MAILBOX AGENT</p>
+          <h1>Email operations</h1>
+        </div>
+        <form method="post" action="/run"><button class="primary" type="submit">Check now</button></form>
+      </header>
+
+      {% if notice %}<p class="notice">{{ notice }}</p>{% endif %}
+
+      <section class="settings" aria-labelledby="settings-heading">
+        <div class="section-heading"><h2 id="settings-heading">Mailbox configuration</h2><span>Read-only analysis</span></div>
+        <form method="post" action="/settings" class="form-grid">
+          <label>Provider
+            <select name="provider_id">{% for provider in providers %}<option value="{{ provider.id }}" {% if settings and settings.provider_id == provider.id %}selected{% endif %}>{{ provider.label }}</option>{% endfor %}</select>
+          </label>
+          <label>Email address<input name="email_address" type="email" required value="{{ settings.email_address if settings else '' }}"></label>
+          <label>IMAP authorization code<input name="imap_authorization_code" type="password" autocomplete="new-password" placeholder="Required after restart"></label>
+          <label>Allowed senders<input name="allow_from" required value="{{ settings.allow_from|join(', ') if settings else '' }}" placeholder="one@example.com, two@example.com"></label>
+          <label>Model endpoint<input name="llm_base_url" required value="{{ settings.llm_base_url if settings else 'https://api.openai.com/v1' }}"></label>
+          <label>Model API key<input name="llm_api_key" type="password" autocomplete="new-password" placeholder="Required after restart"></label>
+          <label>Model name<input name="llm_model" required value="{{ settings.llm_model if settings else '' }}" placeholder="your-model-name"></label>
+          <label>Polling interval
+            <select name="polling_seconds"><option value="0" {% if not settings or settings.polling_seconds == 0 %}selected{% endif %}>Manual only</option><option value="60" {% if settings and settings.polling_seconds == 60 %}selected{% endif %}>Every minute</option><option value="300" {% if settings and settings.polling_seconds == 300 %}selected{% endif %}>Every 5 minutes</option><option value="900" {% if settings and settings.polling_seconds == 900 %}selected{% endif %}>Every 15 minutes</option></select>
+          </label>
+          <label class="consent"><input name="consent_granted" type="checkbox" {% if settings and settings.consent_granted %}checked{% endif %}> <span>I grant access to this mailbox</span></label>
+          <div class="form-actions"><button type="submit">Save settings</button></div>
+        </form>
+      </section>
+
+      <section class="results" aria-labelledby="results-heading">
+        <div class="section-heading"><h2 id="results-heading">Latest run</h2>{% if result %}<span class="status {{ result.status }}">{{ result.status }}</span>{% endif %}</div>
+        {% if result %}
+          <p class="run-summary">Processed {{ result.processed_count }} · Ignored {{ result.ignored_count }} · Verification emails moved to Trash {{ result.moved_to_trash_count }}</p>
+          {% if result.message %}<p class="notice">{{ result.message }}</p>{% endif %}
+          {% for item in result.items %}
+            <article>
+              <div class="mail-meta"><strong>{{ item.message.subject or '(No subject)' }}</strong><span>{{ item.message.sender }}</span></div>
+              <dl><div><dt>Summary</dt><dd>{{ item.analysis.summary }}</dd></div><div><dt>Category</dt><dd>{{ item.analysis.category }}</dd></div><div><dt>Risk note</dt><dd>{{ item.analysis.risk_note }}</dd></div><div><dt>Reply draft</dt><dd>{{ item.analysis.reply_draft }}</dd></div></dl>
+            </article>
+          {% endfor %}
+        {% else %}<p class="empty">No mailbox run has been recorded in this session.</p>{% endif %}
+      </section>
+    </main>
+  </body>
+</html>

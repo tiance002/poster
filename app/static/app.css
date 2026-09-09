@@ -1,0 +1,24 @@
+:root { color: #15211c; background: #f4f6f3; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 1120px; margin: 0 auto; padding: 42px 24px 72px; }
+header, .section-heading, .mail-meta { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+header { border-bottom: 1px solid #ccd6cf; padding-bottom: 25px; }
+h1, h2, p { margin: 0; } h1 { font-size: 30px; font-weight: 650; } h2 { font-size: 17px; }
+.eyebrow { color: #52725e; font-size: 12px; font-weight: 700; letter-spacing: 0; margin-bottom: 7px; }
+section { margin-top: 26px; border-top: 3px solid #335b42; background: #fff; padding: 22px; }
+.section-heading span, .status { color: #426b52; font-size: 13px; font-weight: 650; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px; margin-top: 22px; }
+label { color: #385043; display: grid; font-size: 13px; font-weight: 650; gap: 7px; }
+input, select, button { border: 1px solid #b7c6bc; border-radius: 4px; color: #15211c; font: inherit; min-height: 40px; padding: 8px 10px; }
+input:focus, select:focus { border-color: #245b39; outline: 2px solid #c4dbc8; outline-offset: 1px; }
+button { background: #e8eee9; cursor: pointer; font-weight: 700; } button:hover { background: #d8e6da; }
+.primary { background: #245b39; border-color: #245b39; color: #fff; padding: 8px 16px; } .primary:hover { background: #17462a; }
+.consent { align-self: end; display: flex; align-items: center; padding-bottom: 10px; }.consent input { min-height: 16px; width: 16px; }
+.form-actions { display: flex; align-items: end; }.form-actions button { width: 100%; }
+.notice { background: #e9f2eb; border-left: 3px solid #3b794e; margin-top: 18px; padding: 11px 13px; }
+.results { border-top-color: #5b4b31; }.run-summary, .empty { color: #526259; margin: 16px 0; font-size: 14px; }
+article { border-top: 1px solid #dce4de; padding: 18px 0; }.mail-meta span { color: #5a6b60; font-size: 13px; }
+dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 28px; margin: 16px 0 0; }dt { color: #607069; font-size: 12px; font-weight: 700; }dd { margin: 4px 0 0; white-space: pre-wrap; }
+.status.completed { color: #257243; }.status.blocked { color: #8a5230; }
+@media (max-width: 700px) { main { padding: 24px 15px 48px; } header { align-items: flex-start; flex-direction: column; } .form-grid, dl { grid-template-columns: 1fr; } section { padding: 17px; } }

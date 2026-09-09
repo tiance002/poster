@@ -5,3 +5,6 @@ __pycache__/
 *.py[cod]
 data/
 *.sqlite3
+output.json
+pytest_html_report.html
+archive/

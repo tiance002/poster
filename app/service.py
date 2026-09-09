@@ -10,6 +10,7 @@ from app.types import AnalysisResult, EmailMessage, MailboxSettings, ProcessedRe
 
 class MailGateway(Protocol):
     def fetch_unseen(self, settings: MailboxSettings) -> list[EmailMessage]: ...
+    def fetch_recent_inbox(self, settings: MailboxSettings, limit: int) -> list[EmailMessage]: ...
     def fetch_history(self, settings: MailboxSettings, sender: str, limit: int) -> list[EmailMessage]: ...
     def move_to_trash(self, settings: MailboxSettings, messages: list[EmailMessage]) -> int: ...
 
@@ -49,6 +50,7 @@ class MailboxProcessor:
             analysis = self.analyzer.analyze(message, history, settings)
             self.repository.record_processed(settings.email_address, message.uid_validity, message.uid, message.message_id)
             processed.append(ProcessedResult(message, analysis))
-        stale = select_stale_verification_codes(messages, now=datetime.now(timezone.utc))
+        recent_messages = self.gateway.fetch_recent_inbox(settings, limit=100)
+        stale = select_stale_verification_codes(recent_messages, now=datetime.now(timezone.utc))
         moved = self.gateway.move_to_trash(settings, stale) if stale else 0
         return RunResult("completed", len(processed), ignored, moved, items=tuple(processed))
